@@ -18,6 +18,24 @@
 #define PKCS11_LIB_DESCRIPTION		"OP-TEE PKCS11 Cryptoki library"
 
 /**
+ * Converts uint32_t value to CK_ULONG with unavailable information support
+ *
+ * On 64 bit systems uint32_t cannot handle CK_ULONG defined
+ * CK_UNAVAILABLE_INFORMATION. Check for this specific situation and return
+ * correct value.
+ *
+ * @ta_value: Value form PKCS#11 TA
+ * @return Valid CK_ULONG value
+ */
+static CK_ULONG maybe_unavail(uint32_t ta_value)
+{
+	if (ta_value == PKCS11_CK_UNAVAILABLE_INFORMATION)
+		return CK_UNAVAILABLE_INFORMATION;
+	else
+		return ta_value;
+}
+
+/**
  * ck_get_info - Get local information for C_GetInfo
  */
 CK_RV ck_get_info(CK_INFO_PTR info)
@@ -232,16 +250,20 @@ CK_RV ck_token_get_info(CK_SLOT_ID slot, CK_TOKEN_INFO_PTR info)
 	       sizeof(info->serialNumber));
 
 	info->flags = ta_info->flags;
-	info->ulMaxSessionCount = ta_info->max_session_count;
-	info->ulSessionCount = ta_info->session_count;
-	info->ulMaxRwSessionCount = ta_info->max_rw_session_count;
-	info->ulRwSessionCount = ta_info->rw_session_count;
+	info->ulMaxSessionCount = maybe_unavail(ta_info->max_session_count);
+	info->ulSessionCount = maybe_unavail(ta_info->session_count);
+	info->ulMaxRwSessionCount =
+		maybe_unavail(ta_info->max_rw_session_count);
+	info->ulRwSessionCount = maybe_unavail(ta_info->rw_session_count);
 	info->ulMaxPinLen = ta_info->max_pin_len;
 	info->ulMinPinLen = ta_info->min_pin_len;
-	info->ulTotalPublicMemory = ta_info->total_public_memory;
-	info->ulFreePublicMemory = ta_info->free_public_memory;
-	info->ulTotalPrivateMemory = ta_info->total_private_memory;
-	info->ulFreePrivateMemory = ta_info->free_private_memory;
+	info->ulTotalPublicMemory =
+		maybe_unavail(ta_info->total_public_memory);
+	info->ulFreePublicMemory = maybe_unavail(ta_info->free_public_memory);
+	info->ulTotalPrivateMemory =
+		maybe_unavail(ta_info->total_private_memory);
+	info->ulFreePrivateMemory =
+		maybe_unavail(ta_info->free_private_memory);
 
 	COMPILE_TIME_ASSERT(sizeof(info->hardwareVersion) ==
 			    sizeof(ta_info->hardware_version));

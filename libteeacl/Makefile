@@ -3,7 +3,7 @@ include ../config.mk
 
 OUT_DIR := $(OO)/libteeacl
 
-.PHONY: all libteeacl clean
+.PHONY: all libteeacl check-libuuid clean
 
 all: libteeacl
 install: libteeacl
@@ -27,10 +27,10 @@ LIBTEEACL_SRCS	+= tee_uuid.c
 LIBTEEACL_INCLUDES	= ${CURDIR}/include
 
 LIBTEEACL_CFLAGS	:= $(addprefix -I, $(LIBTEEACL_INCLUDES)) \
-			$(shell pkg-config --cflags uuid) \
+			$(shell $(PKG_CONFIG) --cflags uuid) \
 			$(CFLAGS) -D_GNU_SOURCE -fPIC
 
-LIBTEEACL_LFLAGS	:= $(LDFLAGS) $(shell pkg-config --libs uuid)
+LIBTEEACL_LFLAGS	:= $(LDFLAGS) $(shell $(PKG_CONFIG) --libs uuid)
 
 LIBTEEACL_OBJ_DIR	:= $(OUT_DIR)
 LIBTEEACL_OBJS	:= $(patsubst %.c,$(LIBTEEACL_OBJ_DIR)/%.o, $(LIBTEEACL_SRCS))
@@ -39,6 +39,12 @@ $(LIBTEEACL_OBJ_DIR)/%.o: ${LIBTEEACL_SRC_DIR}/%.c
 	$(VPREFIX)mkdir -p $(LIBTEEACL_OBJ_DIR)
 	@echo "  CC      $<"
 	$(VPREFIX)$(CC) $(LIBTEEACL_CFLAGS) -c $< -o $@
+
+libteeacl: check-libuuid
+
+check-libuuid:
+	@echo "  Finding uuid.pc"
+	$(VPREFIX)$(PKG_CONFIG) --atleast-version=2.34 uuid
 
 libteeacl: $(OUT_DIR)/$(LIBTEEACL_SO_LIBRARY)
 

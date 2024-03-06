@@ -40,7 +40,7 @@ TEES_OBJ_DIR	:= $(OUT_DIR)
 TEES_OBJS 	:= $(patsubst %.c,$(TEES_OBJ_DIR)/%.o, $(TEES_SRCS))
 TEES_INCLUDES 	:= ${CURDIR}/../libteec/include \
 		   ${CURDIR}/src \
-		   ${CURDIR}/../public \
+		   ${CURDIR}/../libteec/src \
 
 TEES_CFLAGS	:= $(addprefix -I, $(TEES_INCLUDES)) $(CFLAGS) \
 		   -DDEBUGLEVEL_$(CFG_TEE_SUPP_LOG_LEVEL) \
@@ -53,9 +53,6 @@ TEES_CFLAGS	+= -DCFG_GP_SOCKETS=1
 endif
 ifeq ($(RPMB_EMU),1)
 TEES_CFLAGS	+= -DRPMB_EMU=1
-endif
-ifeq ($(CFG_TA_TEST_PATH),y)
-TEES_CFLAGS	+= -DCFG_TA_TEST_PATH=1
 endif
 TEES_FILE	:= $(OUT_DIR)/$(PACKAGE_NAME)
 TEES_LFLAGS    := $(LDFLAGS) -L$(OUT_DIR)/../libteec -lteec

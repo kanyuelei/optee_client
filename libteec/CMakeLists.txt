@@ -13,29 +13,26 @@ endif()
 ################################################################################
 # Configuration flags always included
 ################################################################################
-option (CFG_TEE_BENCHMARK "Build with benchmark support" OFF)
-
-set (CFG_TEE_CLIENT_LOG_LEVEL "1" CACHE STRING "libteec log level")
-set (CFG_TEE_CLIENT_LOG_FILE "/data/tee/teec.log" CACHE STRING "Location of libteec log")
+set(CFG_TEE_CLIENT_LOG_LEVEL "1" CACHE STRING "libteec log level")
+set(CFG_TEE_CLIENT_LOG_FILE "/data/tee/teec.log" CACHE STRING "Location of libteec log")
 
 ################################################################################
 # Source files
 ################################################################################
-set (SRC
+set(SRC
 	src/tee_client_api.c
 	src/teec_trace.c
 )
 
-if (CFG_TEE_BENCHMARK)
-	set (SRC ${SRC} src/teec_benchmark.c)
-endif()
-
 ################################################################################
 # Built library
 ################################################################################
-add_library (teec ${SRC})
+add_library(teec ${SRC})
 
-set_target_properties (teec PROPERTIES
+set(libteectgt teec)
+configure_file(libteec.pc.in libteec.pc @ONLY)
+
+set_target_properties(teec PROPERTIES
 	VERSION ${PROJECT_VERSION}
 	SOVERSION ${PROJECT_VERSION_MAJOR}
 )
@@ -43,7 +40,7 @@ set_target_properties (teec PROPERTIES
 ################################################################################
 # Flags always set
 ################################################################################
-target_compile_definitions (teec
+target_compile_definitions(teec
 	PRIVATE -D_GNU_SOURCE
 	PRIVATE -DDEBUGLEVEL_${CFG_TEE_CLIENT_LOG_LEVEL}
 	PRIVATE -DTEEC_LOG_FILE="${CFG_TEE_CLIENT_LOG_FILE}"
@@ -51,25 +48,29 @@ target_compile_definitions (teec
 )
 
 ################################################################################
-# Optional flags
-################################################################################
-if (CFG_TEE_BENCHMARK)
-	target_compile_definitions (teec PRIVATE -DCFG_TEE_BENCHMARK)
-endif()
-
-################################################################################
 # Public and private header and library dependencies
 ################################################################################
-target_include_directories(teec PUBLIC include)
+target_include_directories(teec
+	PUBLIC include
+	PRIVATE src
+)
 
-target_link_libraries (teec
+target_link_libraries(teec
 	PUBLIC ${CMAKE_THREAD_LIBS_INIT} # this is pthreads
-	PRIVATE optee-client-headers)
+)
 
 ################################################################################
 # Install targets
 ################################################################################
 # FIXME: This should in someway harmonize with CFG_TEE_CLIENT_LOAD_PATH
 # FIXME: Should we change this to /usr/local/lib?
-install (TARGETS teec LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+install(TARGETS teec LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}"
                       ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}")
+
+install(DIRECTORY include
+	DESTINATION ${CMAKE_INSTALL_PREFIX}
+)
+
+install(FILES "${CMAKE_CURRENT_BINARY_DIR}/libteec.pc"
+	DESTINATION "${CMAKE_INSTALL_LIBDIR}/pkgconfig"
+)

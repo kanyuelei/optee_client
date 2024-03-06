@@ -89,6 +89,17 @@ static size_t tee_fs_get_absolute_filename(char *file, char *out,
 	return (size_t)s;
 }
 
+static void fs_fsync(void)
+{
+	int fd = 0;
+
+	fd = open(tee_fs_root, O_RDONLY | O_DIRECTORY);
+	if (fd > 0) {
+		fsync(fd);
+		close(fd);
+	}
+}
+
 static int do_mkdir(const char *path, mode_t mode)
 {
 	struct stat st;
@@ -101,6 +112,7 @@ static int do_mkdir(const char *path, mode_t mode)
 	if (stat(path, &st) != 0 && !S_ISDIR(st.st_mode))
 		return -1;
 
+	fs_fsync();
 	return 0;
 }
 
@@ -277,6 +289,7 @@ static TEEC_Result ree_fs_new_create(size_t num_params,
 	}
 
 out:
+	fs_fsync();
 	params[2].a = fd;
 	return TEEC_SUCCESS;
 }
@@ -491,6 +504,8 @@ static TEEC_Result ree_fs_new_rename(size_t num_params,
 		if (errno == ENOENT)
 			return TEEC_ERROR_ITEM_NOT_FOUND;
 	}
+
+	fs_fsync();
 	return TEEC_SUCCESS;
 }
 
@@ -628,7 +643,7 @@ TEEC_Result tee_supp_fs_process(size_t num_params,
 	if (!num_params || !tee_supp_param_is_value(params))
 		return TEEC_ERROR_BAD_PARAMETERS;
 
-	if (strlen(tee_fs_root) == 0) {
+	if (!tee_fs_root[0]) {
 		if (tee_supp_fs_init() != 0) {
 			EMSG("error tee_supp_fs_init: failed to create %s/",
 				tee_fs_root);

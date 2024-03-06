@@ -86,10 +86,10 @@ extern "C" {
  * TEEC_MEMREF_WHOLE           The Parameter is a Registered Memory Reference
  *                             that refers to the entirety of its parent Shared
  *                             Memory block. The parameter structure is a
- *                             TEEC_MemoryReference. In this structure, the
- *                             Implementation MUST read only the parent field
- *                             and MAY update the size field when the operation
- *                             completes.
+ *                             TEEC_RegisteredMemoryReference. In this
+ *                             structure, the Implementation MUST read only the
+ *                             parent field and MAY update the size field when
+ *                             the operation completes.
  *
  * TEEC_MEMREF_PARTIAL_INPUT   A Registered Memory Reference structure that
  *                             refers to a partial region of its parent Shared
@@ -157,8 +157,21 @@ extern "C" {
  * TEEC_ERROR_SECURITY          A security fault was detected.
  * TEEC_ERROR_SHORT_BUFFER      The supplied buffer is too short for the
  *                              generated output.
- * TEEC_ERROR_TARGET_DEAD       Trusted Application has panicked
- *                              during the operation.
+ * TEE_ERROR_EXTERNAL_CANCEL    Defined by the Trusted User Interface
+ *                              specification: An external event has caused a
+ *                              User Interface operation to be aborted.
+ * TEEC_ERROR_EXTERNAL_CANCEL   Deprecated: not specified in client API, use
+ *                              TEE_ERROR_EXTERNAL_CANCEL intead.
+ * TEE_ERROR_OVERFLOW           Internal TEE error – documented for completeness
+ * TEE_ERROR_TARGET_DEAD        The Trusted Application has terminated.
+ * TEEC_ERROR_TARGET_DEAD       The Trusted Application has terminated.
+ * TEE_ERROR_STORAGE_NO_SPACE   Internal TEE error – documented for completeness
+ * TEEC_ERROR_STORAGE_NO_SPACE  Deprecated: not specified in client API, use
+ *                              TEE_ERROR_STORAGE_NO_SPACE instead.
+ * TEE_ERROR_MAC_INVALID        Internal TEE error – documented for completeness
+ * TEE_ERROR_SIGNATURE_INVALID  Internal TEE error – documented for completeness
+ * TEE_ERROR_TIME_NOT_SET       Internal TEE error – documented for completeness
+ * TEE_ERROR_TIME_NEEDS_RESET   Internal TEE error – documented for completeness
  */
 
 /**
@@ -183,9 +196,17 @@ extern "C" {
 #define TEEC_ERROR_COMMUNICATION           0xFFFF000E
 #define TEEC_ERROR_SECURITY                0xFFFF000F
 #define TEEC_ERROR_SHORT_BUFFER            0xFFFF0010
+#define TEE_ERROR_EXTERNAL_CANCEL          0xFFFF0011
 #define TEEC_ERROR_EXTERNAL_CANCEL         0xFFFF0011
+#define TEE_ERROR_OVERFLOW                 0xFFFF300F
+#define TEE_ERROR_TARGET_DEAD              0xFFFF3024
 #define TEEC_ERROR_TARGET_DEAD             0xFFFF3024
+#define TEE_ERROR_STORAGE_NO_SPACE         0xFFFF3041
 #define TEEC_ERROR_STORAGE_NO_SPACE        0xFFFF3041
+#define TEE_ERROR_MAC_INVALID              0xFFFF3071
+#define TEE_ERROR_SIGNATURE_INVALID        0xFFFF3072
+#define TEE_ERROR_TIME_NOT_SET             0xFFFF5000
+#define TEE_ERROR_TIME_NEEDS_RESET         0xFFFF5001
 
 /**
  * Function error origins, of type TEEC_ErrorOrigin. These indicate where in

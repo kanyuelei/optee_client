@@ -46,8 +46,6 @@
 #endif
 #include <linux/tee.h>
 
-#include "teec_benchmark.h"
-
 #define MIN(x, y) (((x) < (y)) ? (x) : (y))
 
 /* How many device sequence numbers will be tried before giving up */
@@ -79,8 +77,10 @@ static void teec_mutex_unlock(pthread_mutex_t *mu)
 static void *teec_paged_aligned_alloc(size_t sz)
 {
 	void *p = NULL;
+	size_t page_sz = sysconf(_SC_PAGESIZE);
+	size_t aligned_sz = ((sz + page_sz - 1) / page_sz) * page_sz;
 
-	if (!posix_memalign(&p, sysconf(_SC_PAGESIZE), sz))
+	if (aligned_sz >= sz && !posix_memalign(&p, page_sz, aligned_sz))
 		return p;
 
 	return NULL;
@@ -703,8 +703,6 @@ TEEC_Result TEEC_InvokeCommand(TEEC_Session *session, uint32_t cmd_id,
 		goto out;
 	}
 
-	bm_timestamp();
-
 	buf_data.buf_ptr = (uintptr_t)&buf;
 	buf_data.buf_len = sizeof(buf);
 
@@ -738,8 +736,6 @@ TEEC_Result TEEC_InvokeCommand(TEEC_Session *session, uint32_t cmd_id,
 	res = arg->ret;
 	eorig = arg->ret_origin;
 	teec_post_process_operation(operation, params, shm);
-
-	bm_timestamp();
 
 out_free_temp_refs:
 	teec_free_temp_refs(operation, shm);
